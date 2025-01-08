@@ -2,7 +2,7 @@ import cv2
 import mediapipe as mp
 import numpy as np
 import time
-import pyautogui  # To simulate scrolling
+import pyautogui 
 
 mp_face_mesh = mp.solutions.face_mesh
 face_mesh = mp_face_mesh.FaceMesh(refine_landmarks=True, max_num_faces=1, min_detection_confidence=0.5, min_tracking_confidence=0.5)
@@ -18,7 +18,6 @@ calibration_done = False
 initial_left_eye_centroid = None
 initial_right_eye_centroid = None
 
-# calibrating the eyes
 calibration_time = 5  
 start_time = time.time()
 
@@ -47,10 +46,11 @@ while cap.isOpened():
                 cv2.circle(frame, point, 2, (0, 255, 0), -1)
 
             if not calibration_done:
+
                 left_x, left_y, left_w, left_h = cv2.boundingRect(np.array(left_eye))
                 right_x, right_y, right_w, right_h = cv2.boundingRect(np.array(right_eye))
 
-                # initial centroid of the eyes
+                # initial centroids for eyes
                 initial_left_eye_centroid = (left_x + left_w // 2, left_y + left_h // 2)
                 initial_right_eye_centroid = (right_x + right_w // 2, right_y + right_h // 2)
 
@@ -59,24 +59,28 @@ while cap.isOpened():
                 cv2.putText(frame, f"Time remaining: {int(calibration_time - elapsed_time)}s", (50, 80), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 255), 2)
 
                 if elapsed_time >= calibration_time:
-                    # lock the calibrated eyes
                     locked_left_eye = (left_x, left_y, left_w, left_h)
                     locked_right_eye = (right_x, right_y, right_w, right_h)
                     calibration_done = True
                     cv2.putText(frame, "Calibration complete!", (50, 110), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)
 
-            # track the eye movement (after calibration)
+            # track eye movement after calibration
             if calibration_done:
-
-                # current centroid of the eyes (after calibration)
+                # current centroids for eyes
                 current_left_eye_centroid = np.mean(left_eye, axis=0).astype(int)
                 current_right_eye_centroid = np.mean(right_eye, axis=0).astype(int)
 
-                # Check if eyes moved downwards significantly
-                if (current_left_eye_centroid[1] - initial_left_eye_centroid[1] > 10 or
-                    current_right_eye_centroid[1] - initial_right_eye_centroid[1] > 10):
-                    pyautogui.scroll(-5)  
+                # threshold to start scrolling
+                scroll_up_threshold = 20  
+                scroll_down_threshold = 10  
+
+                if current_left_eye_centroid[1] - initial_left_eye_centroid[1] > scroll_down_threshold or current_right_eye_centroid[1] - initial_right_eye_centroid[1] > scroll_down_threshold:
+                    pyautogui.scroll(-10)  
                     cv2.putText(frame, "Scrolling down!", (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)
+
+                elif current_left_eye_centroid[1] - initial_left_eye_centroid[1] < -scroll_up_threshold or current_right_eye_centroid[1] - initial_right_eye_centroid[1] < -scroll_up_threshold:
+                    pyautogui.scroll(10)  
+                    cv2.putText(frame, "Scrolling up!", (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 2)
 
     cv2.imshow("Eye Tracking and Scrolling", frame)
 
