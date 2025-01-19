@@ -9,9 +9,11 @@ face_mesh = mp_face_mesh.FaceMesh(refine_landmarks=True, max_num_faces=1, min_de
 
 cap = cv2.VideoCapture(0)
 
+# define indices for left and right eye landmarks based on MediaPipe's face mesh model
 LEFT_EYE_INDICES = [33, 133, 160, 159, 158, 144, 153, 145, 246]
 RIGHT_EYE_INDICES = [362, 263, 387, 386, 385, 373, 380, 374, 466]
 
+# initialize variables to store eye positions and calibration status
 locked_left_eye = None
 locked_right_eye = None
 calibration_done = False
@@ -21,12 +23,12 @@ initial_right_eye_centroid = None
 calibration_time = 5  
 start_time = time.time()
 
+# capture frames from webcam
 while cap.isOpened():
     ret, frame = cap.read()
     if not ret:
         break
 
-    frame = cv2.flip(frame, 1)
     h, w, _ = frame.shape
 
     rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
@@ -37,6 +39,7 @@ while cap.isOpened():
 
         for face_landmarks in results.multi_face_landmarks:
 
+            #  get positions of left and right eye landmarks
             left_eye = [(int(landmark.x * w), int(landmark.y * h)) for i, landmark in enumerate(face_landmarks.landmark) if i in LEFT_EYE_INDICES]
             right_eye = [(int(landmark.x * w), int(landmark.y * h)) for i, landmark in enumerate(face_landmarks.landmark) if i in RIGHT_EYE_INDICES]
 
@@ -50,7 +53,6 @@ while cap.isOpened():
                 left_x, left_y, left_w, left_h = cv2.boundingRect(np.array(left_eye))
                 right_x, right_y, right_w, right_h = cv2.boundingRect(np.array(right_eye))
 
-                # initial centroids for eyes
                 initial_left_eye_centroid = (left_x + left_w // 2, left_y + left_h // 2)
                 initial_right_eye_centroid = (right_x + right_w // 2, right_y + right_h // 2)
 
@@ -64,16 +66,15 @@ while cap.isOpened():
                     calibration_done = True
                     cv2.putText(frame, "Calibration complete!", (50, 110), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)
 
-            # track eye movement after calibration
             if calibration_done:
-                # current centroids for eyes
                 current_left_eye_centroid = np.mean(left_eye, axis=0).astype(int)
                 current_right_eye_centroid = np.mean(right_eye, axis=0).astype(int)
 
-                # threshold to start scrolling
+                # define thresholds for scrolling actions 
                 scroll_up_threshold = 20  
                 scroll_down_threshold = 10  
 
+                # determine scrolling direction 
                 if current_left_eye_centroid[1] - initial_left_eye_centroid[1] > scroll_down_threshold or current_right_eye_centroid[1] - initial_right_eye_centroid[1] > scroll_down_threshold:
                     pyautogui.scroll(-10)  
                     cv2.putText(frame, "Scrolling down!", (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)
