@@ -71,7 +71,7 @@ while cap.isOpened():
                 current_right_eye_centroid = np.mean(right_eye, axis=0).astype(int)
 
                 # define thresholds for scrolling actions 
-                scroll_up_threshold = 20  
+                scroll_up_threshold = 15  
                 scroll_down_threshold = 10  
 
                 # determine scrolling direction 
