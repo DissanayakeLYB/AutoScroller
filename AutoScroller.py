@@ -71,8 +71,8 @@ while cap.isOpened():
                 current_right_eye_centroid = np.mean(right_eye, axis=0).astype(int)
 
                 # define thresholds for scrolling actions 
-                scroll_up_threshold = 15  
-                scroll_down_threshold = 10  
+                scroll_up_threshold = 5  
+                scroll_down_threshold = 5  
 
                 # determine scrolling direction 
                 if current_left_eye_centroid[1] - initial_left_eye_centroid[1] > scroll_down_threshold or current_right_eye_centroid[1] - initial_right_eye_centroid[1] > scroll_down_threshold:
@@ -82,11 +82,14 @@ while cap.isOpened():
                 elif current_left_eye_centroid[1] - initial_left_eye_centroid[1] < -scroll_up_threshold or current_right_eye_centroid[1] - initial_right_eye_centroid[1] < -scroll_up_threshold:
                     pyautogui.scroll(10)  
                     cv2.putText(frame, "Scrolling up!", (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 2)
-
+    
+    cv2.namedWindow("Eye Tracking and Scrolling", cv2.WINDOW_NORMAL)
     cv2.imshow("Eye Tracking and Scrolling", frame)
 
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
 
-cap.release()
-cv2.destroyAllWindows()
+if __name__ == "__main__":
+    cap.release()
+    cv2.destroyAllWindows()
+
